@@ -1,0 +1,23 @@
+# Questa / ModelSim simulation artifacts
+work/
+transcript
+*.wlf
+vsim.wlf
+
+# Verilator artifacts
+obj_dir/
+
+# Waveform dumps
+*.vcd
+*.fst
+
+# Python / cocotb cache
+__pycache__/
+*.pyc
+
+# OS / Editor temporary files
+.DS_Store
+*.swp
+
+#vscode config
+.vscode
