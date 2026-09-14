@@ -56,4 +56,50 @@ package riscv_pkg;
         ALU_SLTU = 4'b1001   // Set Less Than (Unsigned): result = (a < b) ? 1 : 0
     } alu_op_t;
 
+    // ========================================================================
+    // RV32I Opcode Constants (instr[6:0])
+    // ========================================================================
+    //
+    // These 7-bit values identify the instruction format and general category.
+    // Used by the Immediate Generator, Control Unit, and ALU Control to
+    // decode instructions. Defined as localparam (compile-time constants)
+    // rather than enum because opcodes are compared against raw instruction
+    // bits, not passed as typed signals between modules.
+    // ========================================================================
+
+    localparam logic [6:0] OP_R_TYPE  = 7'b0110011;  // R-type ALU (add, sub, and, or, xor, sll, srl, sra, slt, sltu)
+    localparam logic [6:0] OP_I_ALU   = 7'b0010011;  // I-type ALU (addi, andi, ori, xori, slli, srli, srai, slti, sltiu)
+    localparam logic [6:0] OP_LOAD    = 7'b0000011;  // I-type Load (lb, lh, lw, lbu, lhu)
+    localparam logic [6:0] OP_STORE   = 7'b0100011;  // S-type Store (sb, sh, sw)
+    localparam logic [6:0] OP_BRANCH  = 7'b1100011;  // B-type Branch (beq, bne, blt, bge, bltu, bgeu)
+    localparam logic [6:0] OP_JAL     = 7'b1101111;  // J-type Jump and Link
+    localparam logic [6:0] OP_JALR    = 7'b1100111;  // I-type Jump and Link Register
+    localparam logic [6:0] OP_LUI     = 7'b0110111;  // U-type Load Upper Immediate
+    localparam logic [6:0] OP_AUIPC   = 7'b0010111;  // U-type Add Upper Immediate to PC
+    localparam logic [6:0] OP_SYSTEM  = 7'b1110011;  // System (ecall, ebreak, CSR instructions)
+    localparam logic [6:0] OP_CUSTOM1 = 7'b0101011;  // Custom-1 (PIM extension, Phase 6)
+
+    // ========================================================================
+    // Control Unit Output Types
+    // ========================================================================
+    //
+    // Typed enums for the two mux selects driven by the Control Unit.
+    // Using enums (instead of bare 1-bit/2-bit logic) makes the signal
+    // intent self-documenting in waveforms and port declarations.
+    // ========================================================================
+
+    // ALU source B mux: selects between register rs2 data and the
+    // sign-extended immediate as operand B into the ALU.
+    typedef enum logic {
+        ALU_SRC_REG = 1'b0,  // Operand B = register rs2 data   (R-type)
+        ALU_SRC_IMM = 1'b1   // Operand B = sign-extended imm   (I/S/B/U/J-type)
+    } alu_src_t;
+
+    // Writeback source mux: selects what is written back to the register file.
+    typedef enum logic [1:0] {
+        WB_SRC_ALU  = 2'b00,  // Write ALU result        (R-type, I-ALU, LUI, AUIPC)
+        WB_SRC_MEM  = 2'b01,  // Write memory read data  (Load instructions)
+        WB_SRC_PC4  = 2'b10   // Write PC+4 (return addr)(JAL, JALR)
+    } wb_src_t;
+
 endpackage
