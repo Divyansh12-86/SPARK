@@ -3,6 +3,9 @@ work/
 transcript
 *.wlf
 vsim.wlf
+modelsim.ini
+*.ini
+
 
 # Verilator artifacts
 obj_dir/
