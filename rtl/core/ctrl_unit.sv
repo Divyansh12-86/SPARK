@@ -33,6 +33,7 @@ module ctrl_unit
     import riscv_pkg::*;
 (
     input  logic [6:0] opcode,      // instr[6:0]
+    input  logic [2:0] funct3,      // instr[14:12] (for SYSTEM CSR decode)
 
     output logic       reg_write,   // 1 = write to register file
     output alu_src_t   alu_src,     // Operand B mux select
@@ -89,7 +90,7 @@ module ctrl_unit
                 wb_src    = WB_SRC_ALU;
                 branch    = 1'b0;
                 jump      = 1'b0;
-                alu_op    = 2'b10;  // ALU Control decodes from funct3/funct7[5]
+                alu_op    = 2'b11;  // 2'b11 = I-type ALU (forces ADD for funct3=000)
             end
 
             // ----------------------------------------------------------------
@@ -212,6 +213,22 @@ module ctrl_unit
                 branch    = 1'b0;
                 jump      = 1'b0;
                 alu_op    = 2'b00;  // ADD: PC + imm
+            end
+
+            // ----------------------------------------------------------------
+            // SYSTEM: ECALL, EBREAK, MRET, SRET, and CSR instructions
+            //   CSR operations (funct3 != 0): reg_write=1, wb_src=WB_SRC_CSR
+            //   System traps/returns (funct3 == 0): no register writeback
+            // ----------------------------------------------------------------
+            OP_SYSTEM: begin
+                reg_write = (funct3 != 3'b000);
+                alu_src   = ALU_SRC_REG;
+                mem_write = 1'b0;
+                mem_read  = 1'b0;
+                wb_src    = (funct3 != 3'b000) ? WB_SRC_CSR : WB_SRC_ALU;
+                branch    = 1'b0;
+                jump      = 1'b0;
+                alu_op    = 2'b00;
             end
 
             // ----------------------------------------------------------------

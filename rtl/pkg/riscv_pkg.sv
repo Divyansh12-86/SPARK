@@ -99,7 +99,78 @@ package riscv_pkg;
     typedef enum logic [1:0] {
         WB_SRC_ALU  = 2'b00,  // Write ALU result        (R-type, I-ALU, LUI, AUIPC)
         WB_SRC_MEM  = 2'b01,  // Write memory read data  (Load instructions)
-        WB_SRC_PC4  = 2'b10   // Write PC+4 (return addr)(JAL, JALR)
+        WB_SRC_PC4  = 2'b10,  // Write PC+4 (return addr)(JAL, JALR)
+        WB_SRC_CSR  = 2'b11   // Write CSR read data     (CSR instructions)
     } wb_src_t;
+
+    // ========================================================================
+    // Privilege Levels
+    // ========================================================================
+    localparam logic [1:0] PRIV_U = 2'b00;  // User mode
+    localparam logic [1:0] PRIV_S = 2'b01;  // Supervisor mode (xv6 kernel)
+    localparam logic [1:0] PRIV_M = 2'b11;  // Machine mode (boot / physical hardware)
+
+    // ========================================================================
+    // CSR Addresses (12-bit)
+    // ========================================================================
+    // Machine Mode CSRs
+    localparam logic [11:0] CSR_MSTATUS   = 12'h300; // Machine status register
+    localparam logic [11:0] CSR_MISA      = 12'h301; // Machine ISA features
+    localparam logic [11:0] CSR_MEDELEG   = 12'h302; // Machine exception delegation
+    localparam logic [11:0] CSR_MIDELEG   = 12'h303; // Machine interrupt delegation
+    localparam logic [11:0] CSR_MIE       = 12'h304; // Machine interrupt enable
+    localparam logic [11:0] CSR_MTVEC     = 12'h305; // Machine trap-handler base address
+    localparam logic [11:0] CSR_MSCRATCH  = 12'h340; // Machine scratch register
+    localparam logic [11:0] CSR_MEPC      = 12'h341; // Machine exception PC
+    localparam logic [11:0] CSR_MCAUSE    = 12'h342; // Machine trap cause
+    localparam logic [11:0] CSR_MTVAL     = 12'h343; // Machine bad address or instruction
+    localparam logic [11:0] CSR_MIP       = 12'h344; // Machine interrupt pending
+    localparam logic [11:0] CSR_MCYCLE    = 12'hB00; // Machine cycle counter low
+    localparam logic [11:0] CSR_MCYCLEH   = 12'hB80; // Machine cycle counter high
+
+    // Supervisor Mode CSRs (for xv6 virtual memory and trap handling)
+    localparam logic [11:0] CSR_SSTATUS   = 12'h100; // Supervisor status
+    localparam logic [11:0] CSR_SIE       = 12'h104; // Supervisor interrupt enable
+    localparam logic [11:0] CSR_STVEC     = 12'h105; // Supervisor trap-handler base
+    localparam logic [11:0] CSR_SSCRATCH  = 12'h140; // Supervisor scratch register
+    localparam logic [11:0] CSR_SEPC      = 12'h141; // Supervisor exception PC
+    localparam logic [11:0] CSR_SCAUSE    = 12'h142; // Supervisor trap cause
+    localparam logic [11:0] CSR_STVAL     = 12'h143; // Supervisor trap value
+    localparam logic [11:0] CSR_SIP       = 12'h144; // Supervisor interrupt pending
+    localparam logic [11:0] CSR_SATP      = 12'h180; // Supervisor address translation & protection
+
+    // ========================================================================
+    // CSR Operation Codes (funct3 for SYSTEM instructions)
+    // ========================================================================
+    localparam logic [2:0] CSR_OP_NONE    = 3'b000;  // ECALL / EBREAK / MRET / SRET
+    localparam logic [2:0] CSR_OP_RW      = 3'b001;  // CSRRW:  Atomic Read/Write
+    localparam logic [2:0] CSR_OP_RS      = 3'b010;  // CSRRS:  Atomic Read and Set Bits
+    localparam logic [2:0] CSR_OP_RC      = 3'b011;  // CSRRC:  Atomic Read and Clear Bits
+    localparam logic [2:0] CSR_OP_RWI     = 3'b101;  // CSRRWI: Atomic Read/Write Immediate
+    localparam logic [2:0] CSR_OP_RSI     = 3'b110;  // CSRRSI: Atomic Read and Set Bits Immediate
+    localparam logic [2:0] CSR_OP_RCI     = 3'b111;  // CSRRCI: Atomic Read and Clear Bits Immediate
+
+    // ========================================================================
+    // Trap Causes (mcause / scause)
+    // ========================================================================
+    localparam logic [30:0] INT_M_TIMER    = 31'd7;   // Machine timer interrupt (from CLINT)
+    localparam logic [30:0] INT_M_EXTERNAL = 31'd11;  // Machine external interrupt (from PLIC)
+    localparam logic [30:0] EXC_ILLEGAL_OP = 31'd2;   // Illegal instruction
+    localparam logic [30:0] EXC_BREAKPOINT = 31'd3;   // EBREAK
+    localparam logic [30:0] EXC_ECALL_U    = 31'd8;   // ECALL from User mode
+    localparam logic [30:0] EXC_ECALL_S    = 31'd9;   // ECALL from Supervisor mode
+    localparam logic [30:0] EXC_ECALL_M    = 31'd11;  // ECALL from Machine mode
+
+    // ========================================================================
+    // PIM Custom-1 Instructions (Phase 6 preparatory)
+    // ========================================================================
+    typedef enum logic [2:0] {
+        PIM_VADD  = 3'b000,  // Vector addition
+        PIM_VMAC  = 3'b001,  // Vector multiply-accumulate
+        PIM_VAND  = 3'b010,  // Vector bitwise AND
+        PIM_VSUM  = 3'b011,  // Vector reduction sum
+        PIM_CFG   = 3'b100,  // Configuration
+        PIM_VFILL = 3'b101   // Bulk memory fill
+    } pim_op_t;
 
 endpackage
