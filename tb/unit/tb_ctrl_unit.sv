@@ -15,6 +15,7 @@ module tb_ctrl_unit;
     import riscv_pkg::*;
 
     logic [6:0]   tb_opcode;
+    logic [2:0]   tb_funct3;
     logic         tb_reg_write;
     alu_src_t     tb_alu_src;
     logic         tb_mem_write;
@@ -30,6 +31,7 @@ module tb_ctrl_unit;
 
     ctrl_unit dut (
         .opcode    (tb_opcode),
+        .funct3    (tb_funct3),
         .reg_write (tb_reg_write),
         .alu_src   (tb_alu_src),
         .mem_write (tb_mem_write),
@@ -94,6 +96,27 @@ module tb_ctrl_unit;
         input logic [1:0] exp_aop
     );
         tb_opcode = opcode_val;
+        tb_funct3 = 3'b000;
+        #10;
+        check(test_name, exp_rw, exp_asrc, exp_mw, exp_mr,
+              exp_wb, exp_br, exp_jmp, exp_aop);
+    endtask
+
+    task apply_and_check_csr(
+        input logic [6:0] opcode_val,
+        input logic [2:0] funct3_val,
+        input string      test_name,
+        input logic       exp_rw,
+        input alu_src_t   exp_asrc,
+        input logic       exp_mw,
+        input logic       exp_mr,
+        input wb_src_t    exp_wb,
+        input logic       exp_br,
+        input logic       exp_jmp,
+        input logic [1:0] exp_aop
+    );
+        tb_opcode = opcode_val;
+        tb_funct3 = funct3_val;
         #10;
         check(test_name, exp_rw, exp_asrc, exp_mw, exp_mr,
               exp_wb, exp_br, exp_jmp, exp_aop);
@@ -122,10 +145,10 @@ module tb_ctrl_unit;
             1'b1, ALU_SRC_REG, 1'b0, 1'b0, WB_SRC_ALU, 1'b0, 1'b0, 2'b10);
 
         // ----------------------------------------------------------------
-        // I-type ALU: reg_write=1, src=IMM, no mem, wb=ALU, alu_op=10
+        // I-type ALU: reg_write=1, src=IMM, no mem, wb=ALU, alu_op=11
         // ----------------------------------------------------------------
         apply_and_check(OP_I_ALU, "I-type ALU (ADDI/ANDI/ORI...)",
-            1'b1, ALU_SRC_IMM, 1'b0, 1'b0, WB_SRC_ALU, 1'b0, 1'b0, 2'b10);
+            1'b1, ALU_SRC_IMM, 1'b0, 1'b0, WB_SRC_ALU, 1'b0, 1'b0, 2'b11);
 
         // ----------------------------------------------------------------
         // Load: reg_write=1, src=IMM, mem_read=1, wb=MEM, alu_op=00
@@ -168,6 +191,23 @@ module tb_ctrl_unit;
         // ----------------------------------------------------------------
         apply_and_check(OP_AUIPC, "AUIPC",
             1'b1, ALU_SRC_IMM, 1'b0, 1'b0, WB_SRC_ALU, 1'b0, 1'b0, 2'b00);
+
+        // ----------------------------------------------------------------
+        // SYSTEM Trap (ECALL / EBREAK / MRET / SRET): funct3=000
+        //   reg_write=0, wb=ALU, alu_op=00
+        // ----------------------------------------------------------------
+        apply_and_check_csr(OP_SYSTEM, 3'b000, "SYSTEM (ECALL/MRET)",
+            1'b0, ALU_SRC_REG, 1'b0, 1'b0, WB_SRC_ALU, 1'b0, 1'b0, 2'b00);
+
+        // ----------------------------------------------------------------
+        // SYSTEM CSR (CSRRW / CSRRS / CSRRC): funct3!=000
+        //   reg_write=1, wb=CSR, alu_op=00
+        // ----------------------------------------------------------------
+        apply_and_check_csr(OP_SYSTEM, 3'b001, "CSRRW (Atomic Read/Write)",
+            1'b1, ALU_SRC_REG, 1'b0, 1'b0, WB_SRC_CSR, 1'b0, 1'b0, 2'b00);
+
+        apply_and_check_csr(OP_SYSTEM, 3'b010, "CSRRS (Atomic Read/Set)",
+            1'b1, ALU_SRC_REG, 1'b0, 1'b0, WB_SRC_CSR, 1'b0, 1'b0, 2'b00);
 
         // ----------------------------------------------------------------
         // Unknown opcode: safe NOP — everything disabled
