@@ -10,9 +10,10 @@ modelsim.ini
 # Verilator artifacts
 obj_dir/
 
-# Waveform dumps
+# Waveform dumps & test logs
 *.vcd
 *.fst
+vga_signals.txt
 
 # Python / cocotb cache
 __pycache__/
@@ -22,5 +23,12 @@ __pycache__/
 .DS_Store
 *.swp
 
-#vscode config
+# vscode config
 .vscode
+
+# Compiled binary & object artifacts
+*.o
+*.elf
+*.sym
+*.asm
+*.d
