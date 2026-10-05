@@ -1,0 +1,29 @@
+// SPARK 5-Stage Pipelined CPU Hazard Test Program Hex
+// PC 0x00: addi x1, x0, 10
+00a00093
+// PC 0x04: addi x2, x1, 5 (RAW hazard on x1)
+00508113
+// PC 0x08: add  x3, x1, x2 (RAW hazard on x1 and x2)
+002081b3
+// PC 0x0C: sw   x3, 8(x0)
+00302423
+// PC 0x10: lw   x4, 8(x0)
+00802203
+// PC 0x14: addi x5, x4, 1 (LOAD-USE hazard on x4 -> 1-cycle stall!)
+00120293
+// PC 0x18: beq  x3, x3, +12 (branch to 0x24)
+00318663
+// PC 0x1C: addi x6, x0, 99 (flushed by branch)
+06300313
+// PC 0x20: addi x7, x0, 99 (flushed by branch)
+06300393
+// PC 0x24: addi x8, x0, 77 (branch target)
+04d00413
+// PC 0x28: jal  x9, +8 (jump to 0x30)
+008004ef
+// PC 0x2C: addi x10, x0, 88 (flushed by jump)
+05800513
+// PC 0x30: addi x11, x0, 1 (jump target)
+00100593
+// PC 0x34: beq  x0, x0, 0 (infinite halt loop)
+00000063

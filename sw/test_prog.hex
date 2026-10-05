@@ -1,0 +1,29 @@
+// SPARK Single-Cycle CPU Test Program Hex
+// PC 0x00: addi x1, x0, 10
+00a00093
+// PC 0x04: addi x2, x0, 20
+01400113
+// PC 0x08: add  x3, x1, x2
+002081b3
+// PC 0x0C: sub  x4, x2, x1
+40110233
+// PC 0x10: sw   x3, 4(x0)
+00302223
+// PC 0x14: lw   x5, 4(x0)
+00402283
+// PC 0x18: beq  x3, x5, +8 (to 0x20)
+00518463
+// PC 0x1C: addi x6, x0, 99 (skipped)
+06300313
+// PC 0x20: addi x7, x0, 42
+02a00393
+// PC 0x24: lui  x8, 0x12345
+12345437
+// PC 0x28: jal  x9, +8 (to 0x30)
+008004ef
+// PC 0x2C: addi x10, x0, 88 (skipped)
+05800513
+// PC 0x30: addi x11, x0, 1
+00100593
+// PC 0x34: beq  x0, x0, 0 (infinite loop / halt)
+00000063

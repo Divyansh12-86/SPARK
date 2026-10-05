@@ -1,0 +1,35 @@
+// SPARK SoC Peripheral Verification Test Program Hex
+// PC 0x00: lui  x1, 0x10000 (UART base 0x1000_0000)
+100000b7
+// PC 0x04: addi x2, x0, 83 ('S')
+05300113
+// PC 0x08: sw   x2, 0(x1)
+0020a023
+// PC 0x0C: addi x2, x0, 80 ('P')
+05000113
+// PC 0x10: sw   x2, 0(x1)
+0020a023
+// PC 0x14: addi x2, x0, 65 ('A')
+04100113
+// PC 0x18: sw   x2, 0(x1)
+0020a023
+// PC 0x1C: addi x2, x0, 82 ('R')
+05200113
+// PC 0x20: sw   x2, 0(x1)
+0020a023
+// PC 0x24: addi x2, x0, 75 ('K')
+04b00113
+// PC 0x28: sw   x2, 0(x1)
+0020a023
+// PC 0x2C: lui  x5, 0x20004 (CLINT mtimecmp 0x2000_4000)
+200042b7
+// PC 0x30: addi x4, x0, 20
+01400213
+// PC 0x34: sw   x4, 0(x5) (mtimecmp[31:0] = 20)
+0042a023
+// PC 0x38: sw   x0, 4(x5) (mtimecmp[63:32] = 0)
+0002a223
+// PC 0x3C: addi x6, x0, 1 (completion flag)
+00100313
+// PC 0x40: beq  x0, x0, 0
+00000063
